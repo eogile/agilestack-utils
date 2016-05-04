@@ -1,15 +1,17 @@
 package plugins
 
 import (
+	"log"
+	"os"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+
 	"github.com/eogile/agilestack-utils/dockerclient"
 	"github.com/eogile/agilestack-utils/slices"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/hashicorp/consul/api"
-	"log"
-	"os"
-	"sync"
-	"testing"
-	"time"
 )
 
 var dockerClient *dockerclient.DockerClient
@@ -117,6 +119,13 @@ func setupConsulContainer() {
 }
 
 func tearDownConsulContainer() {
+	dockerEnv, _ := dockerClient.Version()
+	dockerVersion := dockerEnv.Get("Version")
+	inCircleCI := strings.Contains(dockerVersion, "circleci")
+	if inCircleCI {
+		return
+	}
+
 	isRunning, err := dockerClient.IsContainerRunning(consulContainerName)
 	if err != nil {
 		log.Fatalln("in tearDownConsulContainer, unable to do IsContainerRunning ", err)
@@ -129,12 +138,12 @@ func tearDownConsulContainer() {
 				log.Println("Strange behaviour, says that cannot stop consul, but has been killed : ", err)
 			}
 		}
-		isRunning, err = dockerClient.IsContainerRunning(consulContainerName)
-		err = dockerClient.RemoveContainer(docker.RemoveContainerOptions{ID: consulContainerName, RemoveVolumes: false, Force: false})
-		if err != nil {
-			log.Fatalln("Cannot remove consul : ", err)
+		if !inCircleCI {
+			err = dockerClient.RemoveContainer(docker.RemoveContainerOptions{ID: consulContainerName, RemoveVolumes: false, Force: false})
+			if err != nil {
+				log.Fatalln("Cannot remove consul : ", err)
+			}
 		}
-
 	}
 
 }
