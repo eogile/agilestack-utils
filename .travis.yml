@@ -1,11 +1,16 @@
 sudo: required
 
-language: go
-
 services:
   - docker
 
-env:
+language: go
+
+go:
+  - 1.6
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install docker-engine
 
 before_script:
   - uname -a
