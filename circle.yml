@@ -8,6 +8,7 @@ machine:
     PROJECT_PATH: "$PROJECT_PARENT/$CIRCLE_PROJECT_REPONAME"
 
 dependencies:
+  pre:
     - docker version
     - go version
 
