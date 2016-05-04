@@ -1,0 +1,25 @@
+machine:
+  pre:
+    - curl -sSL https://s3.amazonaws.com/circle-downloads/install-circleci-docker.sh | bash -s -- 1.10.0
+  services:
+    - docker
+  environment:
+    PROJECT_PARENT: "$HOME/.go_project/src/github.com/$CIRCLE_PROJECT_USERNAME"
+    PROJECT_PATH: "$PROJECT_PARENT/$CIRCLE_PROJECT_REPONAME"
+
+dependencies:
+  pre:
+    - docker version
+    - go version
+
+  override:
+    - mkdir -p $PROJECT_PARENT
+    - ln -fs $HOME/$CIRCLE_PROJECT_REPONAME $PROJECT_PATH
+    - |
+      echo 'export GOPATH=$GOPATH:$HOME/.go_project' >> ~/.circlerc
+    - cd $PROJECT_PATH && make setup
+    - cd $PROJECT_PATH && make
+
+test:
+  override:
+    - cd $PROJECT_PATH && make test
