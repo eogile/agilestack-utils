@@ -47,6 +47,7 @@ func TestSmallImagePresent(t *testing.T) {
 		t.Logf("Running container: %v", container)
 		errStop := dockerClient.StopContainer(container.ID, 0) //10 seconds
 		if errStop != nil {
+			dockerClient.Logs(docker.LogsOptions{Container: testContainerName, Stderr: true})
 			t.Fatalf("Unable to stop container %s, : %v", testContainerName, errStop)
 		}
 		//container should be installed but not running
@@ -66,7 +67,10 @@ func TestSmallImagePresent(t *testing.T) {
 				t.Errorf("%s expected to not be running, but is running", testContainerName)
 			}
 		}
-		dockerClient.RemoveContainer(docker.RemoveContainerOptions{container.ID, false, false})
+		errRemove := dockerClient.RemoveContainer(docker.RemoveContainerOptions{container.ID, false, false})
+		if errRemove != nil {
+			t.Fatal("Error removing the container", errRemove)
+		}
 		is2ndInstalled, err2ndInstalled := dockerClient.IsContainerInstalled(testContainerName)
 		if err2ndInstalled != nil {
 			t.Fatal("Unable to check if container is installed", err2ndInstalled)
