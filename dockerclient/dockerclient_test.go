@@ -1,10 +1,11 @@
 package dockerclient
 
 import (
-	"github.com/fsouza/go-dockerclient"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/fsouza/go-dockerclient"
 )
 
 var dockerClient *DockerClient
@@ -43,6 +44,7 @@ func TestSmallImagePresent(t *testing.T) {
 	if container == nil {
 		t.Error("Expected to find by name container: ", testContainerName)
 	} else {
+		t.Logf("Running container: %v", container)
 		errStop := dockerClient.StopContainer(container.ID, 0) //10 seconds
 		if errStop != nil {
 			t.Fatalf("Unable to stop container %s, : %v", testContainerName, errStop)
