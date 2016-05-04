@@ -5,6 +5,8 @@ import (
 	"os"
 	"testing"
 
+	"strings"
+
 	"github.com/fsouza/go-dockerclient"
 )
 
@@ -29,9 +31,13 @@ func TestExtractContainerName(t *testing.T) {
 }
 
 func TestSmallImagePresent(t *testing.T) {
-	err := dockerClient.LaunchContainerByNames(testImageName, testContainerName, network, "")
-	if err != nil {
-		t.Fatal("got error when launching container, ", err)
+	dockerEnv, _ := dockerClient.Version()
+	dockerVersion := dockerEnv.Get("Version")
+	inCircleCI := strings.Contains(dockerVersion, "circleci")
+
+	errLaunch := dockerClient.LaunchContainerByNames(testImageName, testContainerName, network, "")
+	if errLaunch != nil {
+		t.Fatal("got error when launching container, ", errLaunch)
 	}
 	isRunning, errIs := dockerClient.IsContainerRunning(testContainerName)
 	if errIs != nil {
@@ -67,16 +73,18 @@ func TestSmallImagePresent(t *testing.T) {
 				t.Errorf("%s expected to not be running, but is running", testContainerName)
 			}
 		}
-		errRemove := dockerClient.RemoveContainer(docker.RemoveContainerOptions{container.ID, false, false})
-		if errRemove != nil {
-			t.Fatal("Error removing the container", errRemove)
-		}
-		is2ndInstalled, err2ndInstalled := dockerClient.IsContainerInstalled(testContainerName)
-		if err2ndInstalled != nil {
-			t.Fatal("Unable to check if container is installed", err2ndInstalled)
-		}
-		if is2ndInstalled {
-			t.Errorf("%s should not be installed but is", testContainerName)
+		if !inCircleCI {
+			errRemove := dockerClient.RemoveContainer(docker.RemoveContainerOptions{container.ID, false, false})
+			if errRemove != nil {
+				t.Fatal("Error removing the container", errRemove)
+			}
+			is2ndInstalled, err2ndInstalled := dockerClient.IsContainerInstalled(testContainerName)
+			if err2ndInstalled != nil {
+				t.Fatal("Unable to check if container is installed", err2ndInstalled)
+			}
+			if is2ndInstalled {
+				t.Errorf("%s should not be installed but is", testContainerName)
+			}
 		}
 	}
 
