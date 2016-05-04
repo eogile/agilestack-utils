@@ -1,0 +1,23 @@
+sudo: required
+
+services:
+  - docker
+
+language: go
+
+go:
+  - 1.6
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine
+
+before_script:
+  - uname -a
+  - docker version
+  - go version
+
+script:
+  - make setup
+  - make
+  - make test
