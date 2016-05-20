@@ -31,7 +31,8 @@ func NewClient() *DockerClient {
 func dockerEndPoint() string {
 	dockerEndpoint := os.Getenv("DOCKER_HOST") //DOCKER_HOST
 	if dockerEndpoint == "" && runtime.GOOS == "darwin" {
-		log.Fatal("DOCKER_HOST should be set on a MacOSX\n")
+		//log.Fatal("DOCKER_HOST should be set on a MacOSX\n")
+		dockerEndpoint = "unix:///var/run/docker.sock"
 	}
 	if dockerEndpoint == "" && runtime.GOOS == "linux" {
 		/*
@@ -51,7 +52,7 @@ func createDockerClient(endPoint string) *DockerClient {
 	var client *docker.Client
 	var errDocker error
 
-	if runtime.GOOS == "darwin" {
+	if runtime.GOOS == "darwin" && endPoint != "unix:///var/run/docker.sock" {
 		me := currentUser()
 		home := me.HomeDir
 		log.Printf("HomeDir = %s", home)
