@@ -5,6 +5,8 @@ import (
 	"github.com/eogile/agilestack-utils/plugins/registration"
 	"encoding/json"
 	"github.com/stretchr/testify/require"
+	"net/http"
+	"net/http/httptest"
 )
 
 func TestStoreRoutesAndReducers_PluginNameWithSpaces(t *testing.T) {
@@ -155,4 +157,38 @@ func TestDeleteRoutesAndReducers(t *testing.T) {
 	// The only existing configuration is config1
 	require.Equal(t, 1, len(configurations))
 	validateConfig(t, &config1, &configurations[0])
+}
+
+func TestLaunchApplicationBuild(t *testing.T) {
+	mux := http.NewServeMux()
+	server := httptest.NewServer(mux)
+	defer server.Close()
+	registration.SetAppBuilderAddress(server.URL)
+
+	mux.HandleFunc("/plugins", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method!= http.MethodPost {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	})
+
+	require.Nil(t, registration.LaunchApplicationBuild())
+}
+
+func TestLaunchApplicationBuild_Error(t *testing.T) {
+	mux := http.NewServeMux()
+	server := httptest.NewServer(mux)
+	defer server.Close()
+	registration.SetAppBuilderAddress(server.URL)
+
+	mux.HandleFunc("/plugins", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	err := registration.LaunchApplicationBuild()
+	require.NotNil(t, err)
+	require.Equal(t, "Invalid status code: 500", err.Error())
+
+
 }

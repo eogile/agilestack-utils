@@ -7,11 +7,9 @@ import (
 
 	"github.com/eogile/agilestack-utils/dockerclient"
 	"github.com/eogile/agilestack-utils/test"
-	"github.com/hashicorp/consul/api"
 )
 
 var dockerClient *dockerclient.DockerClient
-var ConsulTestClient *api.Client
 
 const (
 	network = "networkPluginsTest"
@@ -22,7 +20,6 @@ Starts the Consul container and initializes the Consul client.
  */
 func setupResources() {
 	test.StartConsulContainer(dockerClient)
-	ConsulTestClient, _ = test.NewConsulClient()
 }
 
 /*
@@ -41,10 +38,7 @@ func DoTestMain(m *testing.M) {
 	/*
 	Creating the Docker network if it does not exist.
 	 */
-	err := test.CreateNetworkIfNotExists(dockerClient, network)
-	if err != nil {
-		log.Fatalln("Unable to create a Docker network:", err)
-	}
+	dockerClient.CreateNetWorkIfNeeded(network)
 
 	setupResources()
 

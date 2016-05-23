@@ -5,16 +5,31 @@ import (
 	"log"
 
 	"github.com/hashicorp/consul/api"
+	"net/http"
+	"errors"
+	"strconv"
 )
 
 const consulPrefix = "agilestack/registration/"
 
-var consulAddress = "consul.agilestacknet:8500"
+var (
+	consulAddress = "consul.agilestacknet:8500"
+	appBuilderAddress = "http://agilestack-root-app-builder:8080"
+)
 
+// Change the address of Consul.
+// Default is "consul.agilestacknet:8500"
 func SetConsulAddress(consultAddress string) {
 	consulAddress = consultAddress
 }
 
+// Change the address of the application builder.
+// Default is "http://agilestack-root-app-builder:8080".
+func SetAppBuilderAddress(address string) {
+	appBuilderAddress = address
+}
+
+// Stores the routes and the reducers into Consul store.
 func StoreRoutesAndReducers(config *PluginConfiguration) error {
 	client, err := store()
 	if err != nil {
@@ -41,6 +56,7 @@ func StoreRoutesAndReducers(config *PluginConfiguration) error {
 	return err
 }
 
+// Loads all the plugins configuration from Consul store.
 func ListRoutesAndReducers() ([]PluginConfiguration, error) {
 	client, err := store()
 	if err != nil {
@@ -66,6 +82,7 @@ func ListRoutesAndReducers() ([]PluginConfiguration, error) {
 	return configurations, nil
 }
 
+// Deletes from Consul store all the routes and the reducers of the given plugin.
 func DeleteRoutesAndReducers(pluginName string) error {
 	client, err := store()
 	if err != nil {
@@ -73,8 +90,20 @@ func DeleteRoutesAndReducers(pluginName string) error {
 	}
 
 	kv := client.KV()
-	_, err = kv.Delete(consulPrefix+pluginName, nil)
+	_, err = kv.Delete(consulPrefix + pluginName, nil)
 	return err
+}
+
+// Launches the application build.
+func LaunchApplicationBuild() error {
+	response, err := http.Post(appBuilderAddress + "/plugins", "application/json", nil)
+	if err != nil {
+		return err
+	}
+	if response.StatusCode != 200 {
+		return errors.New("Invalid status code: " + strconv.Itoa(response.StatusCode))
+	}
+	return nil
 }
 
 func store() (*api.Client, error) {
