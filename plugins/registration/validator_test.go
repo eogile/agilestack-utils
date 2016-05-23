@@ -82,10 +82,14 @@ func TestValidate_InvalidRouteName(t *testing.T) {
 			registration.Route{
 				ComponentName: "Component1",
 				Href:          "/route-1",
+				Routes:        []registration.SubRoute{},
+				Type:          "content-route",
 			},
 			registration.Route{
 				ComponentName: "Component1",
 				Href:          "/route-2",
+				Routes:        []registration.SubRoute{},
+				Type:          "content-route",
 			},
 		},
 	}
@@ -107,10 +111,14 @@ func TestValidate_InvalidRoute(t *testing.T) {
 			registration.Route{
 				ComponentName: "Component1",
 				Href:          "/route-1",
+				Routes:        []registration.SubRoute{},
+				Type:          "content-route",
 			},
 			registration.Route{
 				ComponentName: "Component1",
 				Href:          "/route-2",
+				Routes:        []registration.SubRoute{},
+				Type:          "content-route",
 			},
 		},
 	}
@@ -119,9 +127,218 @@ func TestValidate_InvalidRoute(t *testing.T) {
 		config.Routes[1].Href = routeLink
 		err := registration.Validate(&config)
 		require.NotNil(t, err)
-		require.Equal(t, "The link of a route does not match the pattern \"^/[a-z0-9\\-_/]+$\": \""+
-		routeLink +"\"", err.Error())
+		require.Equal(t, "The link of a route does not match the pattern \"^/[a-z0-9\\-_/:]+$\": \""+
+			routeLink+"\"", err.Error())
 	}
+}
+
+func TestValidate_SubRoutesNil(t *testing.T) {
+	config := registration.PluginConfiguration{
+		PluginName: "My wonderful plugin",
+		Reducers:   []string{},
+		Routes: []registration.Route{
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-1",
+				Routes:        []registration.SubRoute{},
+				Type:          "content-route",
+			},
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-2",
+				Type:          "content-route",
+			},
+		},
+	}
+	err := registration.Validate(&config)
+	require.NotNil(t, err)
+	require.Equal(t, "The routes slice cannot be nil", err.Error())
+}
+
+func TestValidate_SubRoutesLinkPattern(t *testing.T) {
+	config := registration.PluginConfiguration{
+		PluginName: "My wonderful plugin",
+		Reducers:   []string{},
+		Routes: []registration.Route{
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-1",
+				Routes:        []registration.SubRoute{},
+				Type:          "content-route",
+			},
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-2",
+				Routes: []registration.SubRoute{
+					registration.SubRoute{
+						Href:          "/route100",
+						ComponentName: "component42",
+						Routes:        []registration.SubRoute{},
+					},
+					registration.SubRoute{
+						Href:          "/route 101",
+						ComponentName: "component42",
+						Routes:        []registration.SubRoute{},
+					},
+				},
+				Type: "content-route",
+			},
+		},
+	}
+	err := registration.Validate(&config)
+	require.NotNil(t, err)
+	require.Equal(t, "The link of a route does not match the pattern \"^/[a-z0-9\\-_/:]+$\": \""+
+		config.Routes[1].Routes[1].Href+"\"", err.Error())
+}
+
+func TestValidate_SubSubRoutesNil(t *testing.T) {
+	config := registration.PluginConfiguration{
+		PluginName: "My wonderful plugin",
+		Reducers:   []string{},
+		Routes: []registration.Route{
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-1",
+				Routes:        []registration.SubRoute{},
+				Type:          "content-route",
+			},
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-2",
+				Routes: []registration.SubRoute{
+					registration.SubRoute{
+						Href:          "/route100",
+						ComponentName: "component42",
+						Routes:        []registration.SubRoute{},
+					},
+					registration.SubRoute{
+						Href:          "/route101",
+						ComponentName: "component42",
+					},
+				},
+				Type: "content-route",
+			},
+		},
+	}
+	err := registration.Validate(&config)
+	require.NotNil(t, err)
+	require.Equal(t, "The routes slice cannot be nil", err.Error())
+}
+
+func TestValidate_SubRoutesComponentName(t *testing.T) {
+	config := registration.PluginConfiguration{
+		PluginName: "My wonderful plugin",
+		Reducers:   []string{},
+		Routes: []registration.Route{
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-1",
+				Routes:        []registration.SubRoute{},
+				Type:          "content-route",
+			},
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-2",
+				Routes: []registration.SubRoute{
+					registration.SubRoute{
+						Href:          "/route100",
+						ComponentName: "component42",
+						Routes:        []registration.SubRoute{},
+					},
+					registration.SubRoute{
+						Href:          "/route101",
+						ComponentName: "component 42",
+						Routes:        []registration.SubRoute{},
+					},
+				},
+				Type: "content-route",
+			},
+		},
+	}
+	err := registration.Validate(&config)
+	require.NotNil(t, err)
+	require.Equal(t, "The component name of a route does not match the pattern \"^[a-zA-Z0-9]+$\": \""+
+		config.Routes[1].Routes[1].ComponentName+"\"", err.Error())
+}
+
+func TestValidate_NoType(t *testing.T) {
+	config := registration.PluginConfiguration{
+		PluginName: "My wonderful plugin",
+		Reducers:   []string{},
+		Routes: []registration.Route{
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-1",
+				Routes:        []registration.SubRoute{},
+				Type:          "content-route",
+			},
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-2",
+				Routes: []registration.SubRoute{},
+			},
+		},
+	}
+	err := registration.Validate(&config)
+	require.NotNil(t, err)
+	require.Equal(t, "Invalid route type: \"\"", err.Error())
+}
+
+func TestValidate_InvalidType(t *testing.T) {
+	config := registration.PluginConfiguration{
+		PluginName: "My wonderful plugin",
+		Reducers:   []string{},
+		Routes: []registration.Route{
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-1",
+				Routes:        []registration.SubRoute{},
+				Type:          "content-route",
+			},
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-2",
+				Routes: []registration.SubRoute{},
+				Type:          "content-route2",
+			},
+		},
+	}
+	err := registration.Validate(&config)
+	require.NotNil(t, err)
+	require.Equal(t, "Invalid route type: \"content-route2\"", err.Error())
+}
+
+// A route with sub routes may not be have a path
+func TestValidate_RouteWithoutLink(t *testing.T) {
+	config := registration.PluginConfiguration{
+		PluginName: "My wonderful plugin",
+		Reducers:   []string{},
+		Routes: []registration.Route{
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-1",
+				Routes:        []registration.SubRoute{},
+				Type:          "content-route",
+			},
+			registration.Route{
+				ComponentName: "Component1",
+				Routes: []registration.SubRoute{
+					registration.SubRoute{
+						Href:          "/route100",
+						ComponentName: "component42",
+						Routes:        []registration.SubRoute{},
+					},
+					registration.SubRoute{
+						Href:          "/route101",
+						ComponentName: "component42",
+						Routes:        []registration.SubRoute{},
+					},
+				},
+				Type: "full-screen-route",
+			},
+		},
+	}
+	require.Nil(t, registration.Validate(&config))
 }
 
 func TestValidate(t *testing.T) {
@@ -132,10 +349,14 @@ func TestValidate(t *testing.T) {
 			registration.Route{
 				ComponentName: "Component1",
 				Href:          "/route-1",
+				Routes:        []registration.SubRoute{},
+				Type:          "full-screen-route",
 			},
 			registration.Route{
 				ComponentName: "Component1",
-				Href:          "/route-2_1",
+				Href:          "/route-2_1/:param",
+				Routes:        []registration.SubRoute{},
+				Type:          "full-screen-route",
 			},
 		},
 	}

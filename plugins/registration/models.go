@@ -1,9 +1,17 @@
 package registration
 
 type (
+	SubRoute struct {
+		Href          string     `json:"href"`
+		ComponentName string     `json:"componentName"`
+		Routes        []SubRoute `json:"routes"`
+	}
+
 	Route struct {
-		Href          string `json:"href"`
-		ComponentName string `json:"componentName"`
+		Href          string     `json:"href"`
+		ComponentName string     `json:"componentName"`
+		Routes        []SubRoute `json:"routes"`
+		Type          string     `json:"type"`
 	}
 
 	PluginConfiguration struct {
