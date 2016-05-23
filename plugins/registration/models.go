@@ -1,4 +1,4 @@
-package react
+package registration
 
 type (
 	Route struct {

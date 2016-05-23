@@ -1,4 +1,4 @@
-package react
+package registration
 
 import (
 	"github.com/go-errors/errors"

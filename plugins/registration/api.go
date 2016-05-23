@@ -1,4 +1,4 @@
-package react
+package registration
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/consul/api"
 )
 
-const consulPrefix = "agilestack/react/"
+const consulPrefix = "agilestack/registration/"
 
 var consulAddress = "consul.agilestacknet:8500"
 
