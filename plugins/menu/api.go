@@ -1,5 +1,11 @@
 package menu
 
+var consulAddress = "consul.agilestacknet:8500"
+
+func SetConsulAddress(consultAddress string) {
+	consulAddress = consultAddress
+}
+
 // Stores the menu and returns the result error.
 func StoreMenu(menu *Menu) error {
 	store, err := newMenuStore()

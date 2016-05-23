@@ -9,7 +9,11 @@ import (
 
 const consulPrefix = "agilestack/react/"
 
-var ConsulAddress = "consul.agilestacknet:8500"
+var consulAddress = "consul.agilestacknet:8500"
+
+func SetConsulAddress(consultAddress string) {
+	consulAddress = consultAddress
+}
 
 func StoreRoutesAndReducers(config *PluginConfiguration) error {
 	client, err := store()
@@ -75,6 +79,6 @@ func DeleteRoutesAndReducers(pluginName string) error {
 
 func store() (*api.Client, error) {
 	config := api.DefaultConfig()
-	config.Address = ConsulAddress
+	config.Address = consulAddress
 	return api.NewClient(config)
 }

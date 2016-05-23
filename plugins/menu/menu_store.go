@@ -9,8 +9,6 @@ import (
 
 const menuPrefix = "agilestack/menu/"
 
-var ConsulAddress = "consul.agilestacknet:8500"
-
 type (
 	MenuStore interface {
 		// Stores the menu and returns the result error
@@ -30,7 +28,7 @@ type (
 
 func newMenuStore() (MenuStore, error) {
 	config := api.DefaultConfig()
-	config.Address = ConsulAddress
+	config.Address = consulAddress
 	client, err := api.NewClient(config)
 	if err != nil {
 		log.Println("Got error when trying to create consulClient", err)

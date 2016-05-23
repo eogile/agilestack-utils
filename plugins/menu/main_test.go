@@ -52,7 +52,7 @@ var (
 
 func TestMain(m *testing.M) {
 	log.Println("Launching tests agilestack/utils/plugins/menu")
-	menu.ConsulAddress = "127.0.0.1:8501"
+	menu.SetConsulAddress("127.0.0.1:8501")
 	test.DoTestMain(m)
 }
 
