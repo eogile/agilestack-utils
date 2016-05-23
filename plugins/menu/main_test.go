@@ -56,11 +56,14 @@ func TestMain(m *testing.M) {
 	test.DoTestMain(m)
 }
 
-func getStore() menu.ConsulMenuStore {
-	return menu.ConsulMenuStore{
-		ConsulClient: test.ConsulTestClient,
-	}
+func consulClient(t *testing.T) *api.Client {
+	config := api.DefaultConfig()
+	config.Address = "localhost:8501"
+	client, err := api.NewClient(config)
+	require.Nil(t, err)
+	return client
 }
+
 
 func validateEntry(t *testing.T, expectedEntry menu.MenuEntry, resultEntry menu.MenuEntry) {
 	assert.Equal(t, expectedEntry.Name, resultEntry.Name)
@@ -85,6 +88,6 @@ func validateMenu(t *testing.T, expectedMenu menu.Menu, resultMenu menu.Menu) {
 }
 
 func deleteAllMenus(t *testing.T) {
-	_, err := getStore().ConsulClient.KV().DeleteTree("agilestack/", &api.WriteOptions{})
+	_, err := consulClient(t).KV().DeleteTree("agilestack/", &api.WriteOptions{})
 	require.Nil(t, err)
 }

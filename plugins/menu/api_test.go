@@ -1,8 +1,8 @@
 package menu_test
 
 import (
-	"testing"
 	"encoding/json"
+	"testing"
 
 	"github.com/eogile/agilestack-utils/plugins/menu"
 	"github.com/stretchr/testify/assert"
@@ -11,12 +11,11 @@ import (
 
 func TestStoreMenu_api(t *testing.T) {
 	deleteAllMenus(t)
-	store := getStore()
 
 	err := menu.StoreMenu(&menu1)
 	assert.Nil(t, err)
 
-	pair, _, err := store.ConsulClient.KV().Get("/agilestack/menu/MyWonderfulPlugin", nil)
+	pair, _, err := consulClient(t).KV().Get("/agilestack/menu/MyWonderfulPlugin", nil)
 	require.Nil(t, err)
 
 	foundMenu := menu.Menu{}
@@ -27,7 +26,6 @@ func TestStoreMenu_api(t *testing.T) {
 
 func TestStoreMenu_update_api(t *testing.T) {
 	deleteAllMenus(t)
-	store := getStore()
 
 	err := menu.StoreMenu(&menu1)
 	assert.Nil(t, err)
@@ -36,9 +34,9 @@ func TestStoreMenu_update_api(t *testing.T) {
 		PluginName: menu1.PluginName,
 		Entries: []menu.MenuEntry{
 			menu.MenuEntry{
-				Name:   "new menu entry",
-				Route:  "/new-route",
-				Weight: 77,
+				Name:    "new menu entry",
+				Route:   "/new-route",
+				Weight:  77,
 				Entries: []menu.MenuEntry{},
 			},
 		},
@@ -46,7 +44,7 @@ func TestStoreMenu_update_api(t *testing.T) {
 	err = menu.StoreMenu(&newMenu1)
 	assert.Nil(t, err)
 
-	pair, _, err := store.ConsulClient.KV().Get("/agilestack/menu/MyWonderfulPlugin", nil)
+	pair, _, err := consulClient(t).KV().Get("/agilestack/menu/MyWonderfulPlugin", nil)
 	require.Nil(t, err)
 
 	foundMenu := menu.Menu{}
@@ -57,75 +55,33 @@ func TestStoreMenu_update_api(t *testing.T) {
 
 func TestStoreMenu_api_Invalid(t *testing.T) {
 	deleteAllMenus(t)
-	store := getStore()
 
 	err := menu.StoreMenu(&menu.Menu{
-		PluginName:"AgileStack rocks",
+		PluginName: "AgileStack rocks",
 	})
 	assert.NotNil(t, err)
 	require.Equal(t, "The menu entries slice must not be nil", err.Error())
 
-	pair, _, err := store.ConsulClient.KV().Get("/agilestack/menu/MyWonderfulPlugin", nil)
+	pair, _, err := consulClient(t).KV().Get("/agilestack/menu/MyWonderfulPlugin", nil)
 	require.Nil(t, err)
 	require.Nil(t, pair)
 }
 
 func TestStoreMenu_api_NameWithSpace(t *testing.T) {
 	deleteAllMenus(t)
-	store := getStore()
 	inputMenu := &menu.Menu{
-		PluginName:"AgileStack rocks",
+		PluginName: "AgileStack rocks",
 		Entries: []menu.MenuEntry{
 			menu.MenuEntry{
-				Name:"entry 1",
-				Route:"/route1",
-				Weight:10,
+				Name:    "entry 1",
+				Route:   "/route1",
+				Weight:  10,
 				Entries: []menu.MenuEntry{},
 			},
 			menu.MenuEntry{
-				Name:"entry2",
-				Route:"/route1",
-				Weight:10,
-				Entries: []menu.MenuEntry{},
-			},
-		},
-	}
-
-	err := menu.StoreMenu(inputMenu)
-	assert.Nil(t, err)
-
-	menus, err := menu.ListMenus()
-	require.Nil(t, err)
-	       require.Equal(t, 1, len(menus))
-	validateMenu(t, *inputMenu, menus[0])
-
-	// manually
-	pair, _, err := store.ConsulClient.KV().Get("/agilestack/menu/AgileStack rocks", nil)
-	require.Nil(t, err)
-	require.NotNil(t, pair)
-
-	foundMenu := menu.Menu{}
-	err = json.Unmarshal(pair.Value, &foundMenu)
-	require.Nil(t, err)
-	validateMenu(t, *inputMenu, foundMenu)
-}
-
-func TestStoreMenu_api_NameWithAccent(t *testing.T) {
-	deleteAllMenus(t)
-	store := getStore()
-	inputMenu := &menu.Menu{
-		PluginName:"AgileStack éé",
-		Entries: []menu.MenuEntry{
-			menu.MenuEntry{
-				Name:"entry 1",
-				Route:"/route1",
-				Weight:10,
-				Entries: []menu.MenuEntry{},
-			},
-			menu.MenuEntry{
-				Name:"entry2",
-				Route:"/route1",
-				Weight:10,
+				Name:    "entry2",
+				Route:   "/route1",
+				Weight:  10,
 				Entries: []menu.MenuEntry{},
 			},
 		},
@@ -140,7 +96,46 @@ func TestStoreMenu_api_NameWithAccent(t *testing.T) {
 	validateMenu(t, *inputMenu, menus[0])
 
 	// manually
-	pair, _, err := store.ConsulClient.KV().Get("/agilestack/menu/AgileStack éé", nil)
+	pair, _, err := consulClient(t).KV().Get("/agilestack/menu/AgileStack rocks", nil)
+	require.Nil(t, err)
+	require.NotNil(t, pair)
+
+	foundMenu := menu.Menu{}
+	err = json.Unmarshal(pair.Value, &foundMenu)
+	require.Nil(t, err)
+	validateMenu(t, *inputMenu, foundMenu)
+}
+
+func TestStoreMenu_api_NameWithAccent(t *testing.T) {
+	deleteAllMenus(t)
+	inputMenu := &menu.Menu{
+		PluginName: "AgileStack éé",
+		Entries: []menu.MenuEntry{
+			menu.MenuEntry{
+				Name:    "entry 1",
+				Route:   "/route1",
+				Weight:  10,
+				Entries: []menu.MenuEntry{},
+			},
+			menu.MenuEntry{
+				Name:    "entry2",
+				Route:   "/route1",
+				Weight:  10,
+				Entries: []menu.MenuEntry{},
+			},
+		},
+	}
+
+	err := menu.StoreMenu(inputMenu)
+	assert.Nil(t, err)
+
+	menus, err := menu.ListMenus()
+	require.Nil(t, err)
+	require.Equal(t, 1, len(menus))
+	validateMenu(t, *inputMenu, menus[0])
+
+	// manually
+	pair, _, err := consulClient(t).KV().Get("/agilestack/menu/AgileStack éé", nil)
 	require.Nil(t, err)
 	require.NotNil(t, pair)
 
