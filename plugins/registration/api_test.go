@@ -40,6 +40,8 @@ func TestStoreRoutesAndReducers_Update(t *testing.T) {
 			registration.Route{
 				ComponentName: "Component1",
 				Href:          "/route-10",
+				Type:"content-route",
+				Routes: []registration.SubRoute{},
 			},
 		},
 	}

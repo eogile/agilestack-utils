@@ -30,6 +30,7 @@ func StoreMenu(menu *Menu) error {
 	bytes, err := json.Marshal(menu)
 	if err != nil {
 		log.Println("Error while marshalling the menu:", err)
+		return err
 	}
 
 	pair := &api.KVPair{

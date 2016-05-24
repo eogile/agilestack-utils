@@ -12,6 +12,7 @@ type (
 		ComponentName string     `json:"componentName"`
 		Routes        []SubRoute `json:"routes"`
 		Type          string     `json:"type"`
+
 	}
 
 	PluginConfiguration struct {

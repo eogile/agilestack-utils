@@ -21,10 +21,14 @@ var (
 			registration.Route{
 				ComponentName: "Component1",
 				Href:          "/route-1",
+				Routes: []registration.SubRoute{},
+				Type:"content-route",
 			},
 			registration.Route{
 				ComponentName: "Component1",
 				Href:          "/route-2_1",
+				Routes: []registration.SubRoute{},
+				Type:"content-route",
 			},
 		},
 	}
@@ -36,6 +40,8 @@ var (
 			registration.Route{
 				ComponentName: "SomeBusinessComponent",
 				Href:          "/route-10",
+				Routes: []registration.SubRoute{},
+				Type:"content-route",
 			},
 		},
 	}

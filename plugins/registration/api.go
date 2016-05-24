@@ -45,13 +45,15 @@ func StoreRoutesAndReducers(config *PluginConfiguration) error {
 
 	bytes, err := json.Marshal(config)
 	if err != nil {
-		log.Println("Error while marshalling the menu:", err)
+		log.Println("Error while marshalling the plugin configuration:", err)
+		return err
 	}
 
 	pair := &api.KVPair{
 		Key:   consulPrefix + config.PluginName,
 		Value: bytes,
 	}
+
 	_, err = kv.Put(pair, &api.WriteOptions{})
 	return err
 }
