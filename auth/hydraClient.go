@@ -11,6 +11,7 @@ import (
 
 	"bytes"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/eogile/agilestack-utils/secu"
 	"github.com/ory-am/hydra/account"
 	"github.com/ory-am/ladon/policy"
@@ -23,6 +24,17 @@ const (
 	accountPath = "/accounts"
 	oauthPath   = "/oauth2"
 )
+
+const dummyKey = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4f5wg5l2hKsTeNem/V41
+fGnJm6gOdrj8ym3rFkEU/wT8RDtnSgFEZOQpHEgQ7JL38xUfU0Y3g6aYw9QT0hJ7
+mCpz9Er5qLaMXJwZxzHzAahlfA0icqabvJOMvQtzD6uQv6wPEyZtDTWiQi9AXwBp
+HssPnpYGIn20ZZuNlX2BrClciHhCPUIIZOQn/MmqTD31jSyjoQoV7MhhMTATKJx2
+XrHhR+1DcKJzQBSTAGnpYVaqpsARap+nwRipr3nUTuxyGohBTSmjJ2usSeQXHI3b
+ODIRe1AuTyHceAbewn8b462yEWKARdpd9AjQW5SIVPfdsz5B6GlYQ5LdYKtznTuy
+7wIDAQAB
+-----END PUBLIC KEY-----
+`
 
 type HydraClient struct {
 	clientCredentialConfig clientcredentials.Config
@@ -86,6 +98,44 @@ func (client HydraClient) getHttpClient(tokenInfo *TokenInfo) *http.Client {
 	oauth2Token.RefreshToken = token.RefreshToken
 
 	return client.oauth2Config.Client(oauth2.NoContext, oauth2Token)
+}
+
+func getUserId(tokenInfo *TokenInfo) (string, error) {
+	token, err := DecodeTokenInfo(tokenInfo)
+	if err != nil {
+		log.Printf("error in getUserId>DecodeTokenInfo : %v", err)
+		return "", err
+	}
+	log.Printf("token.AccessToken=%v", token.AccessToken)
+
+	accessToken, err := jwt.Parse(token.AccessToken, func(*jwt.Token) (interface{}, error) {
+		return jwt.ParseRSAPublicKeyFromPEM([]byte(dummyKey))
+	})
+	if err != nil {
+		log.Printf("error in getUserId>Unmarshall AccessToken : %v", err)
+		return "", err
+	}
+	log.Printf("accessToken=%v", accessToken)
+
+	return fmt.Sprintf("%v", accessToken.Claims["sub"]), nil
+}
+
+func (client HydraClient) GetUser(tokenInfo *TokenInfo) (*secu.User, error, int) {
+	userId, err := getUserId(tokenInfo)
+	if err != nil {
+		return nil, err, 0
+	}
+
+	httpClient := client.getHttpClient(tokenInfo)
+
+	account := &account.DefaultAccount{}
+	found, err, respCode := client.findElement(&account, accountPath+"/"+userId, httpClient)
+	if !found || err != nil {
+		log.Printf("in hydraClient.GetUser, err:%v, respCode:%v\n", err, respCode)
+		return nil, err, respCode
+	}
+	user := secu.NewUser(account)
+	return user, nil, respCode
 }
 
 func (client HydraClient) ListUsers(tokenInfo *TokenInfo) ([]secu.User, error, int) {
