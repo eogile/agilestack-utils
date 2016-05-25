@@ -21,3 +21,7 @@ script:
   - make setup
   - make
   - make test
+
+notifications:
+  email:
+    - agilestack-dev@agilestack.io
