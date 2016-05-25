@@ -123,11 +123,11 @@ func TestValidate_InvalidRoute(t *testing.T) {
 		},
 	}
 
-	for _, routeLink := range []string{"", "/	", "/réact", "registration-component", "/registration component"} {
+	for _, routeLink := range []string{"", "/	", "/réact", "/registration component"} {
 		config.Routes[1].Href = routeLink
 		err := registration.Validate(&config)
 		require.NotNil(t, err)
-		require.Equal(t, "The link of a route does not match the pattern \"^/[a-z0-9\\-_/:]*$\": \""+
+		require.Equal(t, "The link of a route does not match the pattern \"^[a-z0-9\\-_/:]+$\": \""+
 			routeLink+"\"", err.Error())
 	}
 }
@@ -187,7 +187,7 @@ func TestValidate_SubRoutesLinkPattern(t *testing.T) {
 	}
 	err := registration.Validate(&config)
 	require.NotNil(t, err)
-	require.Equal(t, "The link of a route does not match the pattern \"^/[a-z0-9\\-_/:]*$\": \""+
+	require.Equal(t, "The link of a route does not match the pattern \"^[a-z0-9\\-_/:]+$\": \""+
 		config.Routes[1].Routes[1].Href+"\"", err.Error())
 }
 

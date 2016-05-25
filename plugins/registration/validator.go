@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	routeLinkPattern    = "^/[a-z0-9\\-_/:]*$"
+	routeLinkPattern    = "^[a-z0-9\\-_/:]+$"
 	jsIdentifierPattern = "^[a-zA-Z0-9]+$"
 )
 
