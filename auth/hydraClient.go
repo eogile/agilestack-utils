@@ -164,6 +164,10 @@ func (client HydraClient) FindUser(accountId string, tokenInfo *TokenInfo) (*sec
 }
 
 func (client HydraClient) CreateUser(user *secu.User, tokenInfo *TokenInfo) (id string, err error) {
+	// by default, an user is user active and not blocked
+	user.SetActive(true)
+	user.SetBlocked(false)
+
 	httpClient := client.getHttpClient(tokenInfo)
 	request := user.ToCreateAccountRequest()
 	return client.createElement(*request, accountPath, httpClient)
