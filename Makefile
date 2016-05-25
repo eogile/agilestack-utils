@@ -15,7 +15,11 @@ go-build : $(GO_FILES)
 #          SETUP           #
 ############################
 
-setup: go-deps
+setup: submodule go-deps
+
+submodule:
+		git submodule init && \
+		git submodule update
 
 go-deps :
 		go get -t ./...
