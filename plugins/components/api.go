@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/consul/api"
 )
 
-const consulPath = "agilestack/components/"
+const consulPath = "agilestack/components"
 
 var (
 	consulAddress = "consul.agilestacknet:8500"

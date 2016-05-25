@@ -11,6 +11,10 @@ import (
 	"github.com/nats-io/nats/encoders/protobuf"
 	"io/ioutil"
 	"os"
+	"github.com/eogile/agilestack-utils/plugins/registration"
+	"github.com/eogile/agilestack-utils/plugins/menu"
+	"github.com/eogile/agilestack-utils/plugins/components"
+	"github.com/eogile/agilestack-utils/files"
 )
 
 /*
@@ -54,3 +58,26 @@ func ChangeBaseUrl(rootDir string) {
 	}
 
 }
+
+func Register(config FullRegistration) error {
+	destination := "/shared/root-app-builder/web_modules/" + config.PluginName
+	if err:= files.CopyDir(config.SourcesPath, destination); err!=nil {
+		return err
+	}
+	if err := registration.StoreRoutesAndReducers(config.Config); err!= nil {
+		return err
+	}
+
+	if err := menu.StoreMenu(config.Menu); err != nil {
+		return err
+	}
+
+	if config.Components != nil {
+		if err:= components.StoreComponents(config.Components); err != nil {
+			return err
+		}
+	}
+
+	return registration.LaunchApplicationBuild()
+}
+

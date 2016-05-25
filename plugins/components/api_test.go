@@ -12,7 +12,7 @@ func TestStoreComponents(t *testing.T) {
 	deleteAll(t)
 	require.Nil(t, components.StoreComponents(&components1))
 
-	pair, _, err := consulClient(t).KV().Get("agilestack/components/", nil)
+	pair, _, err := consulClient(t).KV().Get("agilestack/components", nil)
 	require.Nil(t, err)
 	require.NotNil(t, pair)
 
@@ -29,7 +29,7 @@ func TestStoreComponents_invalid(t *testing.T) {
 		MainComponent: "Main",
 	}))
 
-	pair, _, err := consulClient(t).KV().Get("agilestack/components/", nil)
+	pair, _, err := consulClient(t).KV().Get("agilestack/components", nil)
 	require.Nil(t, err)
 	require.Nil(t, pair)
 }
@@ -46,7 +46,7 @@ func TestStoreComponents_update(t *testing.T) {
 	}
 	require.Nil(t, components.StoreComponents(&expected))
 
-	pair, _, err := consulClient(t).KV().Get("agilestack/components/", nil)
+	pair, _, err := consulClient(t).KV().Get("agilestack/components", nil)
 	require.Nil(t, err)
 	require.NotNil(t, pair)
 
