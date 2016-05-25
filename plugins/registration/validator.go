@@ -1,13 +1,14 @@
 package registration
 
 import (
-	"github.com/go-errors/errors"
-	"regexp"
 	"fmt"
+	"regexp"
+
+	"github.com/go-errors/errors"
 )
 
 const (
-	routeLinkPattern = "^/[a-z0-9\\-_/:]+$"
+	routeLinkPattern    = "^/[a-z0-9\\-_/:]*$"
 	jsIdentifierPattern = "^[a-zA-Z0-9]+$"
 )
 
@@ -76,18 +77,24 @@ func validateRoute(route Route) error {
 		return fmt.Errorf("Invalid route type: \"%s\"", route.Type)
 	}
 
-	/*
-	 * A route without sub-routes is required to have a path.
-	 */
-	if (len(route.Routes) == 0 || route.Href != "") {
-		if matched, err := regexp.MatchString(routeLinkPattern, route.Href); !matched || err != nil {
-			return fmt.Errorf("The link of a route does not match the pattern \"%s\": \"%s\"",
-				routeLinkPattern, route.Href)
+	if route.IsIndex {
+		if route.Href != "" {
+			return errors.New("An index route cannot have a path")
+		}
+	} else {
+		/*
+	         * A non-index route without sub-routes is required to have a path.
+	         */
+		if len(route.Routes) == 0 || route.Href != "" {
+			if matched, err := regexp.MatchString(routeLinkPattern, route.Href); !matched || err != nil {
+				return fmt.Errorf("The link of a route does not match the pattern \"%s\": \"%s\"",
+					routeLinkPattern, route.Href)
+			}
 		}
 	}
 
 	for _, subRoute := range route.Routes {
-		if err:= validateSubRoute(subRoute); err != nil {
+		if err := validateSubRoute(subRoute); err != nil {
 			return err
 		}
 	}
@@ -103,7 +110,7 @@ func validateSubRoute(subRoute SubRoute) error {
 	/*
 	 * A route without sub-routes is required to have a path.
 	 */
-	if (len(subRoute.Routes) == 0 || subRoute.Href != "") {
+	if len(subRoute.Routes) == 0 || subRoute.Href != "" {
 		if matched, err := regexp.MatchString(routeLinkPattern, subRoute.Href); !matched || err != nil {
 			return fmt.Errorf("The link of a route does not match the pattern \"%s\": \"%s\"",
 				routeLinkPattern, subRoute.Href)
@@ -113,5 +120,5 @@ func validateSubRoute(subRoute SubRoute) error {
 	if subRoute.Routes == nil {
 		return routesSliceNil
 	}
-	return  nil
+	return nil
 }

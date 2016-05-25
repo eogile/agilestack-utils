@@ -127,7 +127,7 @@ func TestValidate_InvalidRoute(t *testing.T) {
 		config.Routes[1].Href = routeLink
 		err := registration.Validate(&config)
 		require.NotNil(t, err)
-		require.Equal(t, "The link of a route does not match the pattern \"^/[a-z0-9\\-_/:]+$\": \""+
+		require.Equal(t, "The link of a route does not match the pattern \"^/[a-z0-9\\-_/:]*$\": \""+
 			routeLink+"\"", err.Error())
 	}
 }
@@ -187,7 +187,7 @@ func TestValidate_SubRoutesLinkPattern(t *testing.T) {
 	}
 	err := registration.Validate(&config)
 	require.NotNil(t, err)
-	require.Equal(t, "The link of a route does not match the pattern \"^/[a-z0-9\\-_/:]+$\": \""+
+	require.Equal(t, "The link of a route does not match the pattern \"^/[a-z0-9\\-_/:]*$\": \""+
 		config.Routes[1].Routes[1].Href+"\"", err.Error())
 }
 
@@ -275,7 +275,7 @@ func TestValidate_NoType(t *testing.T) {
 			registration.Route{
 				ComponentName: "Component1",
 				Href:          "/route-2",
-				Routes: []registration.SubRoute{},
+				Routes:        []registration.SubRoute{},
 			},
 		},
 	}
@@ -298,7 +298,7 @@ func TestValidate_InvalidType(t *testing.T) {
 			registration.Route{
 				ComponentName: "Component1",
 				Href:          "/route-2",
-				Routes: []registration.SubRoute{},
+				Routes:        []registration.SubRoute{},
 				Type:          "content-route2",
 			},
 		},
@@ -306,6 +306,32 @@ func TestValidate_InvalidType(t *testing.T) {
 	err := registration.Validate(&config)
 	require.NotNil(t, err)
 	require.Equal(t, "Invalid route type: \"content-route2\"", err.Error())
+}
+
+func TestValidate_IndexRouteWithPath(t *testing.T) {
+	config := registration.PluginConfiguration{
+		PluginName: "My wonderful plugin",
+		Reducers:   []string{},
+		Routes: []registration.Route{
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-1",
+				Routes:        []registration.SubRoute{},
+				Type:          "content-route",
+				IsIndex:       false,
+			},
+			registration.Route{
+				ComponentName: "Component1",
+				Href:          "/route-2",
+				Routes:        []registration.SubRoute{},
+				Type:          "content-route",
+				IsIndex:       true,
+			},
+		},
+	}
+	err := registration.Validate(&config)
+	require.NotNil(t, err)
+	require.Equal(t, "An index route cannot have a path", err.Error())
 }
 
 // A route with sub routes may not be have a path
@@ -349,6 +375,12 @@ func TestValidate(t *testing.T) {
 			registration.Route{
 				ComponentName: "Component1",
 				Href:          "/route-1",
+				Routes:        []registration.SubRoute{},
+				Type:          "full-screen-route",
+			},
+			registration.Route{
+				ComponentName: "Component10",
+				Href:          "/",
 				Routes:        []registration.SubRoute{},
 				Type:          "full-screen-route",
 			},

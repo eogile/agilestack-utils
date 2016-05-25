@@ -12,7 +12,7 @@ type (
 		ComponentName string     `json:"componentName"`
 		Routes        []SubRoute `json:"routes"`
 		Type          string     `json:"type"`
-
+		IsIndex       bool       `json:"isIndex"`
 	}
 
 	PluginConfiguration struct {
