@@ -172,8 +172,10 @@ func (dockerClient *DockerClient) GetImageByName(name string) *docker.APIImages 
 
 	for _, image := range images {
 		log.Printf("image.RepoTags[0] %s, image.ID=%s", image.RepoTags[0], image.ID)
-		if image.RepoTags[0] == name+":latest" {
-			return &image
+		for _, repoTag := range image.RepoTags {
+			if repoTag == name + ":latest" {
+				return &image
+			}
 		}
 	}
 	return nil
@@ -236,7 +238,7 @@ func (dockerClient *DockerClient) LaunchContainer(options docker.CreateContainer
 	image := dockerClient.GetImageByName(imageName)
 	if image == nil {
 		//create image
-		log.Printf("in LaucnContainer, did not found local image %s, pulling from registry", imageName)
+		log.Printf("in LaunchContainer, did not found local image %s, pulling from registry", imageName)
 		err := dockerClient.PullImage(docker.PullImageOptions{Repository: imageName, Tag: "latest"}, docker.AuthConfiguration{})
 		if err != nil {
 			log.Printf("Could not pull the image %s, got error %v\n", imageName, err)
@@ -301,7 +303,7 @@ func (dockerClient *DockerClient) LaunchContainerByNames(imageName string, conta
 		image := dockerClient.GetImageByName(imageName)
 		if image == nil {
 			//create image
-			log.Printf("in LaucnContainer, did not found local image %s, pulling from registry", imageName)
+			log.Printf("in LaunchContainer, did not found local image %s, pulling from registry", imageName)
 			err := dockerClient.PullImage(docker.PullImageOptions{Repository: imageName, Tag: "latest"}, docker.AuthConfiguration{})
 			if err != nil {
 				log.Printf("Could not pull the image %s, got error %v\n", imageName, err)
