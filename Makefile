@@ -31,7 +31,7 @@ go-deps :
 
 test :
 		# in test
-		go test -v -p 1 ./...
+		go test -v -p 1 $(shell go list ./... | grep -v /vendor/)
 
 
 ############################
