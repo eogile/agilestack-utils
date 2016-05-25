@@ -242,10 +242,6 @@ func (dockerClient *DockerClient) LaunchContainer(options docker.CreateContainer
 		err := dockerClient.PullImage(docker.PullImageOptions{Repository: imageName, Tag: "latest"}, docker.AuthConfiguration{})
 		if err != nil {
 			log.Printf("Could not pull the image %s, got error %v\n", imageName, err)
-		} else {
-			image = dockerClient.GetImageByName(imageName)
-			log.Println("After pulling, the image is: ", image)
-
 		}
 	}
 

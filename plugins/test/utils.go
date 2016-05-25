@@ -19,7 +19,7 @@ const (
 Starts the Consul container and initializes the Consul client.
  */
 func setupResources() {
-	test.StartConsulContainer(dockerClient)
+	test.StartConsulContainer(dockerClient, network)
 }
 
 /*

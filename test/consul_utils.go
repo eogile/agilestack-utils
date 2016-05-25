@@ -5,23 +5,22 @@ import (
 	"sync"
 	"time"
 
+	"github.com/eogile/agilestack-utils/dockerclient"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/hashicorp/consul/api"
-	"github.com/eogile/agilestack-utils/dockerclient"
 )
 
 const (
 	consulContainerName = "consulTest"
 	consulImageName     = "gliderlabs/consul-server"
-	network             = "networkPluginsTest"
 	consulTestPort      = "8501"
 	consulTestHost      = "127.0.0.1:" + consulTestPort
 )
 
 /*
 Starts a consul container for tests purposes.
- */
-func StartConsulContainer(dockerClient *dockerclient.DockerClient) error {
+*/
+func StartConsulContainer(dockerClient *dockerclient.DockerClient, network string) error {
 	/*
 	 * Container configuration
 	 */
@@ -112,7 +111,7 @@ func StartConsulContainer(dockerClient *dockerclient.DockerClient) error {
 
 /*
 Stops and removes the Consul container used in tests.
- */
+*/
 func RemoveConsulContainer(dockerClient *dockerclient.DockerClient) {
 	isRunning, err := dockerClient.IsContainerRunning(consulContainerName)
 	if err != nil {
@@ -137,7 +136,7 @@ func RemoveConsulContainer(dockerClient *dockerclient.DockerClient) {
 
 /*
 Returns a Consul client configured to access the Consul container deployed in tests.
- */
+*/
 func NewConsulClient() (*api.Client, error) {
 	config := api.DefaultConfig()
 	config.Address = consulTestHost
