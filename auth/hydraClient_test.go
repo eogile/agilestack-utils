@@ -52,7 +52,7 @@ func TestCreateUser(t *testing.T) {
 	require.Equal(t, "", user.Password)
 	require.Equal(t, "First name 1", user.FirstName)
 	require.Equal(t, "Last name 1", user.LastName)
-	require.Equal(t, true, user.IsActive())
+	require.Equal(t, false, user.IsInactive())
 	require.Equal(t, false, user.IsBlocked())
 }
 
@@ -81,7 +81,7 @@ func TestUpdateUser(t *testing.T) {
 	newUserData := secu.UserData{
 		FirstName: "First name 2 updated",
 		LastName:  "Last name 2 updated",
-		Active:    false,
+		Inactive:  true,
 		Blocked:   true,
 	}
 	require.Nil(t, client.UpdateUserData(id, newUserData, tokenInfo))
@@ -98,7 +98,7 @@ func TestUpdateUser(t *testing.T) {
 	require.Equal(t, "", user.Password)
 	require.Equal(t, newUserData.FirstName, user.FirstName)
 	require.Equal(t, newUserData.LastName, user.LastName)
-	require.Equal(t, newUserData.Active, user.IsActive())
+	require.Equal(t, newUserData.Inactive, user.IsInactive())
 	require.Equal(t, newUserData.Blocked, user.IsBlocked())
 }
 
@@ -167,10 +167,9 @@ func TestDefaultPolicy_Recreation(t *testing.T) {
 	require.Nil(t, err)
 
 	id1, err := client.CreatePolicy(&secu.Policy{
-		Subjects: []string{"eogile"},
-		Resource: "account",
-		Permissions:[]string{"get"},
-
+		Subjects:    []string{"eogile"},
+		Resource:    "account",
+		Permissions: []string{"get"},
 	}, tokenInfo)
 	require.Nil(t, err)
 	require.NotEqual(t, "", id1)

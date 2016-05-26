@@ -15,7 +15,7 @@ type Role struct {
 type UserData struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
-	Active    bool   `json:"active"`
+	Inactive  bool   `json:"inactive"`
 	Blocked   bool   `json:"blocked"`
 }
 
@@ -69,16 +69,16 @@ func (user *User) ToCreateAccountRequest() *account.CreateAccountRequest {
 	}
 }
 
-func (user *User) IsActive() bool {
-	return user.Active
+func (user *User) IsInactive() bool {
+	return user.Inactive
 }
 
 func (user *User) IsBlocked() bool {
 	return user.Blocked
 }
 
-func (user *User) SetActive(active bool) {
-	user.Active = active
+func (user *User) SetInactive(inactive bool) {
+	user.Inactive = inactive
 }
 
 func (user *User) SetBlocked(blocked bool) {

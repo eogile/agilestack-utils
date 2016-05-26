@@ -38,17 +38,17 @@ ODIRe1AuTyHceAbewn8b462yEWKARdpd9AjQW5SIVPfdsz5B6GlYQ5LdYKtznTuy
 
 // The policy that authorizes users to access their own data
 var defaultUserPolicy = policy.DefaultPolicy{
-	ID : "default-policy",
+	ID:          "default-policy",
 	Description: "Policy enabling every users to access their own data",
-	Subjects: []string{"<.*>"},
-	Permissions:[]string{"get"},
-	Resources: []string{"<rn:hydra:accounts:.*>"},
-	Conditions:[]policy.DefaultCondition{
+	Subjects:    []string{"<.*>"},
+	Permissions: []string{"get"},
+	Resources:   []string{"<rn:hydra:accounts:.*>"},
+	Conditions: []policy.DefaultCondition{
 		policy.DefaultCondition{
-			Operator:"SubjectIsOwner",
+			Operator: "SubjectIsOwner",
 		},
 	},
-	Effect:"allow",
+	Effect: "allow",
 }
 
 type HydraClient struct {
@@ -180,7 +180,7 @@ func (client HydraClient) FindUser(accountId string, tokenInfo *TokenInfo) (*sec
 
 func (client HydraClient) CreateUser(user *secu.User, tokenInfo *TokenInfo) (id string, err error) {
 	// by default, an user is user active and not blocked
-	user.SetActive(true)
+	user.SetInactive(false)
 	user.SetBlocked(false)
 
 	httpClient := client.getHttpClient(tokenInfo)
