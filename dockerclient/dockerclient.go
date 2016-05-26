@@ -170,10 +170,14 @@ func (dockerClient *DockerClient) GetImageByName(name string) *docker.APIImages 
 		return nil
 	}
 
+	// Managing the case where a tag is provided as well as the opposite case.
+	if !strings.Contains(name, ":") {
+		name = name + ":latest"
+	}
 	for _, image := range images {
 		log.Printf("image.RepoTags[0] %s, image.ID=%s", image.RepoTags[0], image.ID)
 		for _, repoTag := range image.RepoTags {
-			if repoTag == name + ":latest" {
+			if repoTag == name {
 				return &image
 			}
 		}
@@ -237,9 +241,20 @@ func (dockerClient *DockerClient) LaunchContainer(options docker.CreateContainer
 	 */
 	image := dockerClient.GetImageByName(imageName)
 	if image == nil {
-		//create image
+		repository := imageName
+		tag := "latest"
+		if strings.Contains(repository, ":") {
+			items := strings.Split(repository, ":")
+			if len(items) != 2 {
+				return errors.New("Invalid image name: " + imageName)
+			}
+			repository = items[0]
+			tag = items[1]
+		}
+
+		//Pulling image
 		log.Printf("in LaunchContainer, did not found local image %s, pulling from registry", imageName)
-		err := dockerClient.PullImage(docker.PullImageOptions{Repository: imageName, Tag: "latest"}, docker.AuthConfiguration{})
+		err := dockerClient.PullImage(docker.PullImageOptions{Repository: repository, Tag: tag}, docker.AuthConfiguration{})
 		if err != nil {
 			log.Printf("Could not pull the image %s, got error %v\n", imageName, err)
 		}
