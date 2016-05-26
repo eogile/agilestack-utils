@@ -155,5 +155,43 @@ func TestDefaultPolicy(t *testing.T) {
 	user4, err := client.FindUser(id4, tokenInfo3)
 	require.NotNil(t, err)
 	require.Nil(t, user4)
+}
 
+func TestDefaultPolicy_Recreation(t *testing.T) {
+	client := auth.NewClient("http://localhost:9090", "superapp2", "supersecret2")
+	token, err := client.Login("superadmin@eogile.com", "supersecret")
+	require.Nil(t, err)
+	require.NotNil(t, token)
+
+	tokenInfo, err := auth.EncodeTokenInfo(token)
+	require.Nil(t, err)
+
+	id1, err := client.CreatePolicy(&secu.Policy{
+		Subjects: []string{"eogile"},
+		Resource: "account",
+		Permissions:[]string{"get"},
+
+	}, tokenInfo)
+	require.Nil(t, err)
+	require.NotEqual(t, "", id1)
+
+	id2, err := client.CreateDefaultPolicy(tokenInfo)
+	require.Nil(t, err)
+	require.NotEqual(t, "", id2)
+
+	policies, err, _ := client.ListPolicies(tokenInfo)
+	require.Nil(t, err)
+	require.Equal(t, 2, len(policies))
+
+	// Recreating the default policy
+	id3, err := client.CreateDefaultPolicy(tokenInfo)
+	require.Nil(t, err)
+	require.NotEqual(t, "", id3)
+	// The ID does not change
+	require.Equal(t, id2, id3)
+
+	// Same number of policies
+	policies, err, _ = client.ListPolicies(tokenInfo)
+	require.Nil(t, err)
+	require.Equal(t, 2, len(policies))
 }

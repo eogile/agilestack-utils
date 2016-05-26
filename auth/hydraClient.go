@@ -36,6 +36,21 @@ ODIRe1AuTyHceAbewn8b462yEWKARdpd9AjQW5SIVPfdsz5B6GlYQ5LdYKtznTuy
 -----END PUBLIC KEY-----
 `
 
+// The policy that authorizes users to access their own data
+var defaultUserPolicy = policy.DefaultPolicy{
+	ID : "default-policy",
+	Description: "Policy enabling every users to access their own data",
+	Subjects: []string{"<.*>"},
+	Permissions:[]string{"get"},
+	Resources: []string{"<rn:hydra:accounts:.*>"},
+	Conditions:[]policy.DefaultCondition{
+		policy.DefaultCondition{
+			Operator:"SubjectIsOwner",
+		},
+	},
+	Effect:"allow",
+}
+
 type HydraClient struct {
 	clientCredentialConfig clientcredentials.Config
 	oauth2Config           oauth2.Config
@@ -313,19 +328,64 @@ func (client HydraClient) CreatePolicy(policy *secu.Policy, tokenInfo *TokenInfo
 func (client HydraClient) CreateDefaultPolicy(tokenInfo *TokenInfo) (id string, err error) {
 	httpClient := client.getHttpClient(tokenInfo)
 
-	hydraPolicy := policy.DefaultPolicy{
-		Description: "Policy enabling every users to access their own data",
-		Subjects: []string{"<.*>"},
-		Permissions:[]string{"get"},
-		Resources: []string{"<rn:hydra:accounts:.*>"},
-		Conditions:[]policy.DefaultCondition{
-			policy.DefaultCondition{
-				Operator:"SubjectIsOwner",
-			},
-		},
-		Effect:"allow",
+	policies := []policy.DefaultPolicy{}
+	found, err, _ := client.findElement(&policies, policyPath, httpClient)
+	if err != nil {
+		return "", err
 	}
-	return client.createElement(hydraPolicy, policyPath, httpClient)
+	if !found {
+		log.Println("Default policy does not exist. It will be created.")
+		return client.createElement(defaultUserPolicy, policyPath, httpClient)
+	}
+
+	for _, policy := range policies {
+		if isDefaultPolicy(policy) {
+			log.Println("Default policy already exists. It won't be re-created.")
+			return policy.ID, err
+		}
+	}
+
+	log.Println("Default policy does not exist. It will be created.")
+	return client.createElement(defaultUserPolicy, policyPath, httpClient)
+}
+
+func isDefaultPolicy(policy policy.DefaultPolicy) bool {
+	if len(policy.Conditions) != len(defaultUserPolicy.GetConditions()) {
+		return false
+	}
+	for i, condition := range defaultUserPolicy.Conditions {
+		if condition.Operator != policy.Conditions[i].Operator {
+			return false
+		}
+	}
+
+	if len(policy.Permissions) != len(defaultUserPolicy.Permissions) {
+		return false
+	}
+	for i, permission := range defaultUserPolicy.Permissions {
+		if permission != policy.Permissions[i] {
+			return false
+		}
+	}
+
+	if len(policy.Resources) != len(defaultUserPolicy.Resources) {
+		return false
+	}
+	for i, resource := range defaultUserPolicy.Resources {
+		if resource != policy.Resources[i] {
+			return false
+		}
+	}
+
+	if len(policy.Subjects) != len(defaultUserPolicy.Subjects) {
+		return false
+	}
+	for i, subject := range defaultUserPolicy.Subjects {
+		if subject != policy.Subjects[i] {
+			return false
+		}
+	}
+	return defaultUserPolicy.Effect == policy.Effect
 }
 
 func (client HydraClient) FindProfile(profileId string, tokenInfo *TokenInfo) (*secu.Policy, error) {
