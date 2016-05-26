@@ -309,6 +309,25 @@ func (client HydraClient) CreatePolicy(policy *secu.Policy, tokenInfo *TokenInfo
 	return client.createElement(hydraPolicy, policyPath, httpClient)
 }
 
+// Creates the default policy to allow users to access their own data.
+func (client HydraClient) CreateDefaultPolicy(tokenInfo *TokenInfo) (id string, err error) {
+	httpClient := client.getHttpClient(tokenInfo)
+
+	hydraPolicy := policy.DefaultPolicy{
+		Description: "Policy enabling every users to access their own data",
+		Subjects: []string{"<.*>"},
+		Permissions:[]string{"get"},
+		Resources: []string{"<rn:hydra:accounts:.*>"},
+		Conditions:[]policy.DefaultCondition{
+			policy.DefaultCondition{
+				Operator:"SubjectIsOwner",
+			},
+		},
+		Effect:"allow",
+	}
+	return client.createElement(hydraPolicy, policyPath, httpClient)
+}
+
 func (client HydraClient) FindProfile(profileId string, tokenInfo *TokenInfo) (*secu.Policy, error) {
 	var policy policy.DefaultPolicy
 	httpClient := client.getHttpClient(tokenInfo)
