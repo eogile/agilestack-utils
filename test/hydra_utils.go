@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	postgreSQLPort          = "5432"
+	postgreSQLPort          = "54321"
 	postgreSQLContainerName = "postgresql-test"
 	hydraPort               = "9090"
 	hydraContainerName      = "hydra-test"

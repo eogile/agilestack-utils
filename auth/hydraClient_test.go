@@ -32,7 +32,7 @@ func TestCreateUser(t *testing.T) {
 
 	id, err := client.CreateUser(&secu.User{
 		Password: "1234",
-		Login:       "user1@eogile.com",
+		Login:    "user1@eogile.com",
 		UserData: secu.UserData{
 			FirstName: "First name 1",
 			LastName:  "Last name 1",
@@ -43,9 +43,8 @@ func TestCreateUser(t *testing.T) {
 	require.NotNil(t, id)
 	require.Regexp(t, "^[0-9a-f\\-]+", id)
 
-	user, err:= client.FindUser(id, tokenInfo)
+	user, err := client.FindUser(id, tokenInfo)
 
-	log.Println("Romain2", user)
 	require.Nil(t, err)
 	require.NotNil(t, user)
 	require.Equal(t, id, user.Id)
@@ -55,4 +54,51 @@ func TestCreateUser(t *testing.T) {
 	require.Equal(t, "Last name 1", user.LastName)
 	require.Equal(t, true, user.IsActive())
 	require.Equal(t, false, user.IsBlocked())
+}
+
+func TestUpdateUser(t *testing.T) {
+	client := auth.NewClient("http://localhost:9090", "superapp2", "supersecret2")
+	token, err := client.Login("superadmin@eogile.com", "supersecret")
+
+	tokenInfo, err := auth.EncodeTokenInfo(token)
+	require.Nil(t, err)
+
+	id, err := client.CreateUser(&secu.User{
+		Password: "1234",
+		Login:    "user2@eogile.com",
+		UserData: secu.UserData{
+			FirstName: "First name 2",
+			LastName:  "Last name 2",
+		},
+	}, tokenInfo)
+
+	require.Nil(t, err)
+	require.NotNil(t, id)
+
+
+	/*
+	Updating the client.
+	 */
+	newUserData:= secu.UserData{
+		FirstName: "First name 2 updated",
+		LastName:  "Last name 2 updated",
+		Active:    false,
+		Blocked:   true,
+	}
+	require.Nil(t, client.UpdateUserData(id, newUserData, tokenInfo))
+
+	/*
+	Checking the client
+	 */
+	user, err := client.FindUser(id, tokenInfo)
+
+	require.Nil(t, err)
+	require.NotNil(t, user)
+	require.Equal(t, id, user.Id)
+	require.Equal(t, "user2@eogile.com", user.Login)
+	require.Equal(t, "", user.Password)
+	require.Equal(t, newUserData.FirstName, user.FirstName)
+	require.Equal(t, newUserData.LastName, user.LastName)
+	require.Equal(t, newUserData.Active, user.IsActive())
+	require.Equal(t, newUserData.Blocked, user.IsBlocked())
 }
