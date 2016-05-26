@@ -75,11 +75,10 @@ func TestUpdateUser(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, id)
 
-
 	/*
-	Updating the client.
-	 */
-	newUserData:= secu.UserData{
+		Updating the client.
+	*/
+	newUserData := secu.UserData{
 		FirstName: "First name 2 updated",
 		LastName:  "Last name 2 updated",
 		Active:    false,
@@ -88,8 +87,8 @@ func TestUpdateUser(t *testing.T) {
 	require.Nil(t, client.UpdateUserData(id, newUserData, tokenInfo))
 
 	/*
-	Checking the client
-	 */
+		Checking the client
+	*/
 	user, err := client.FindUser(id, tokenInfo)
 
 	require.Nil(t, err)
@@ -101,4 +100,60 @@ func TestUpdateUser(t *testing.T) {
 	require.Equal(t, newUserData.LastName, user.LastName)
 	require.Equal(t, newUserData.Active, user.IsActive())
 	require.Equal(t, newUserData.Blocked, user.IsBlocked())
+}
+
+// Tests that the default policy allows an user to access its own data
+// but not other users data.
+func TestDefaultPolicy(t *testing.T) {
+	client := auth.NewClient("http://localhost:9090", "superapp2", "supersecret2")
+	token, err := client.Login("superadmin@eogile.com", "supersecret")
+	require.Nil(t, err)
+	require.NotNil(t, token)
+
+	tokenInfo, err := auth.EncodeTokenInfo(token)
+	require.Nil(t, err)
+
+	_, err = client.CreateDefaultPolicy(tokenInfo)
+	require.Nil(t, err)
+
+	// Creating user3
+	id3, err := client.CreateUser(&secu.User{
+		Password: "1234",
+		Login:    "user3@eogile.com",
+		UserData: secu.UserData{
+			FirstName: "First name 3",
+			LastName:  "Last name 3",
+		},
+	}, tokenInfo)
+	require.Nil(t, err)
+	require.NotNil(t, id3)
+
+	// Creating user4
+	id4, err := client.CreateUser(&secu.User{
+		Password: "1234",
+		Login:    "user4@eogile.com",
+		UserData: secu.UserData{
+			FirstName: "First name 4",
+			LastName:  "Last name 4",
+		},
+	}, tokenInfo)
+	require.Nil(t, err)
+	require.NotNil(t, id4)
+
+	// Authenticate with user3
+	user3Token, err := client.Login("user3@eogile.com", "1234")
+	require.Nil(t, err)
+	tokenInfo3, err := auth.EncodeTokenInfo(user3Token)
+	require.Nil(t, err)
+
+	// user3 can access its data
+	user3, err := client.FindUser(id3, tokenInfo3)
+	require.Nil(t, err)
+	require.Equal(t, "user3@eogile.com", user3.Login)
+
+	// user3 cannot access user4 data
+	user4, err := client.FindUser(id4, tokenInfo3)
+	require.NotNil(t, err)
+	require.Nil(t, user4)
+
 }
