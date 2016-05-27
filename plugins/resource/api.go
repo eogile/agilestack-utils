@@ -1,4 +1,4 @@
-package plugins
+package resource
 
 import (
 	"encoding/json"
@@ -9,8 +9,8 @@ import (
 
 const resourcesPrefix = "agilestack/security/resources/"
 
-//PluginInfoStorageClient is an interface fo operations to get and store informations about plugins
-type PluginInfoStorageClient interface {
+//PluginResourcesStorageClient is an interface fo operations to get and store resources to secure about plugins
+type PluginResourcesStorageClient interface {
 	//StoreResource insert or modify information about the security Resources provided by a plugin
 	StoreResource(resource Resource) error
 
@@ -24,22 +24,22 @@ type PluginInfoStorageClient interface {
 	DeleteResource(name string) error
 }
 
-type ConsulStorageClient struct {
+type ConsulResourcesStorageClient struct {
 	consulClient *api.Client
 }
 
-// NewPluginInfoStorageClient returns a fresh ConsulStorageClient
-func NewPluginInfoStorageClient() PluginInfoStorageClient {
+// NewPluginResourcesStorageClient returns a fresh ConsulStorageClient
+func NewPluginResourcesStorageClient() PluginResourcesStorageClient {
 	client, err := api.NewClient(api.DefaultConfig())
 	if err != nil {
 		log.Println("Got error when trying to create consulClient", err)
 		return nil
 	}
-	return &ConsulStorageClient{client}
+	return &ConsulResourcesStorageClient{client}
 }
 
 //StoreResource store a resource in consul Store
-func (c *ConsulStorageClient) StoreResource(resource Resource) error {
+func (c *ConsulResourcesStorageClient) StoreResource(resource Resource) error {
 	kv := c.consulClient.KV()
 
 	resourceBytes, errJson := json.Marshal(resource)
@@ -58,7 +58,7 @@ func (c *ConsulStorageClient) StoreResource(resource Resource) error {
 }
 
 //GetResource retrieve a resource in consul store given a name
-func (c *ConsulStorageClient) GetResource(name string) (*Resource, error) {
+func (c *ConsulResourcesStorageClient) GetResource(name string) (*Resource, error) {
 	kv := c.consulClient.KV()
 
 	pair, _, err := kv.Get(resourcesPrefix+name, nil)
@@ -74,7 +74,7 @@ func (c *ConsulStorageClient) GetResource(name string) (*Resource, error) {
 }
 
 // List all the resources
-func (c *ConsulStorageClient) ListResources() ([]Resource, error) {
+func (c *ConsulResourcesStorageClient) ListResources() ([]Resource, error) {
 	kv := c.consulClient.KV()
 
 	pairs, _, err := kv.List(resourcesPrefix, nil)
@@ -95,7 +95,7 @@ func (c *ConsulStorageClient) ListResources() ([]Resource, error) {
 }
 
 //DeleteResource Delete a resource in consul Store given its name
-func (c *ConsulStorageClient) DeleteResource(name string) error {
+func (c *ConsulResourcesStorageClient) DeleteResource(name string) error {
 	kv := c.consulClient.KV()
 
 	_, err := kv.Delete(resourcesPrefix+name, nil)

@@ -1,7 +1,9 @@
-package plugins
+package resource
 
 import (
 	"encoding/json"
+	"github.com/eogile/agilestack-utils/plugins/test"
+	TestUtils "github.com/eogile/agilestack-utils/test"
 	"github.com/hashicorp/consul/api"
 	"log"
 	"testing"
@@ -10,6 +12,9 @@ import (
 //const expectedResourceJson = "{\"name\":\"accounts\",\"keys\":{\"lang\":\"accounts\",\"security\":\"rn:hydra:accounts\"},\"permissions\":[\"create\",\"get\",\"delete\",\"put:password\",\"put:data\"]}"
 const expectedResourceJson = "{\"key\":\"accounts\",\"security_key\":\"rn:hydra:accounts\",\"permissions\":[\"create\",\"get\",\"delete\",\"put:password\",\"put:data\"]}"
 const expectedResourceGetJson = "{\"key\":\"accountsGet\",\"security_key\":\"rn:hydra:accounts\",\"permissions\":[\"create\",\"get\",\"delete\",\"put:password\",\"put:data\"]}"
+
+var consulTestClient *api.Client
+var consulTestStorageClient *ConsulResourcesStorageClient
 
 var resourceToStore = Resource{
 	Key:         "accounts",
@@ -222,4 +227,13 @@ func TestDeleteResource(t *testing.T) {
 	//for _, pair := range pairs {
 	//	log.Printf("in Del --- key:%s, value:%s", pair.Key, pair.Value)
 	//}
+}
+
+func TestMain(m *testing.M) {
+	log.Println("Launching tests agilestack/utils/plugins")
+
+	consulTestClient, _ = TestUtils.NewConsulClient()
+	consulTestStorageClient = &ConsulResourcesStorageClient{consulTestClient}
+
+	test.DoTestMain(m)
 }

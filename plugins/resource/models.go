@@ -1,4 +1,4 @@
-package plugins
+package resource
 
 //A Resource typically represents the security information for a plugin
 //
